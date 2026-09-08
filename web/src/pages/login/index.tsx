@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Cloud, LockKeyhole, UserRound } from "lucide-rea
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { cloudAPI, normalizeServerURL } from "@/services/api/cloud";
-import { useCloudStore } from "@/stores/use-cloud-store";
+import { CLOUD_DEFAULT_BASE_URL, useCloudStore } from "@/stores/use-cloud-store";
 
 export default function LoginPage() {
     const baseUrl = useCloudStore(state => state.baseUrl);
@@ -34,10 +34,10 @@ export default function LoginPage() {
                 <h2 className="text-3xl font-medium tracking-tight">登录服务器</h2>
                 <p className="mt-3 mb-8 text-sm leading-6 text-muted-foreground">登录后，即可上传和下载你的创作数据。</p>
                 {error ? <Alert title={error} type="error" showIcon className="mb-5" /> : null}
-                <Form layout="vertical" initialValues={{ server: baseUrl, username: "admin" }} onFinish={login} requiredMark={false} disabled={loading}>
-                    <Form.Item name="server" label="服务器地址" rules={[{ required: true, message: "请输入服务器地址" }]} extra="默认连接当前网站，也可以填写独立后端地址。"><Input size="large" placeholder="https://canvas.example.com" autoComplete="url" /></Form.Item>
-                    <Form.Item name="username" label="账号" rules={[{ required: true, message: "请输入账号" }]}><Input size="large" prefix={<UserRound className="mr-1 size-4 text-muted-foreground" />} autoComplete="username" /></Form.Item>
-                    <Form.Item name="password" label="密码" rules={[{ required: true, message: "请输入密码" }]}><Input.Password size="large" prefix={<LockKeyhole className="mr-1 size-4 text-muted-foreground" />} autoComplete="current-password" placeholder="输入登录密码" /></Form.Item>
+                <Form layout="vertical" initialValues={{ server: baseUrl || CLOUD_DEFAULT_BASE_URL }} onFinish={login} requiredMark={false} disabled={loading} autoComplete="off">
+                    <Form.Item name="server" label="服务器地址" rules={[{ required: true, message: "请输入服务器地址" }]} extra="默认连接云端后端，也可以填写其他兼容服务器地址。"><Input size="large" placeholder="https://canvas.example.com" autoComplete="url" /></Form.Item>
+                    <Form.Item name="username" label="账号" rules={[{ required: true, message: "请输入账号" }]}><Input size="large" prefix={<UserRound className="mr-1 size-4 text-muted-foreground" />} autoComplete="off" placeholder="输入登录账号" /></Form.Item>
+                    <Form.Item name="password" label="密码" rules={[{ required: true, message: "请输入密码" }]}><Input.Password size="large" prefix={<LockKeyhole className="mr-1 size-4 text-muted-foreground" />} autoComplete="new-password" placeholder="输入登录密码" /></Form.Item>
                     <Button htmlType="submit" type="primary" size="large" block loading={loading} icon={<ArrowRight className="size-4" />} iconPlacement="end" className="mt-2">登录</Button>
                 </Form>
                 <a href="/" className="mt-7 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />返回本地工作台</a>

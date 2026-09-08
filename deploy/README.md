@@ -5,7 +5,7 @@
 - 站点：`https://infinite.zemra.cn`
 - 服务器：`103.47.83.171`，SSH 端口 `28778`
 - 目标目录：`/var/www/infinite-canvas`
-- 当前 release：`/var/www/infinite-canvas/releases/20260908-014204`
+- 当前 release：`/var/www/infinite-canvas/releases/20260908-171723`
 - 当前链接：`/var/www/infinite-canvas/current`
 - Web 服务：Nginx
 - Nginx 配置：`/etc/nginx/sites-available/infinite-canvas`
@@ -35,7 +35,7 @@
 
 ## 回滚
 
-当前已知可用的上一版本为 `/var/www/infinite-canvas/releases/20260907-162603`。回滚时将 `current` 原子切换到该目录，执行 `nginx -t`，然后重新检查站点内网与公网地址。静态文件切换不需要重启 Nginx。
+当前已知可用的上一版本为 `/var/www/infinite-canvas/releases/20260908-152504`。回滚时将 `current` 原子切换到该目录，执行 `nginx -t`，然后重新检查站点内网与公网地址。静态文件切换不需要重启 Nginx。
 
 ## 标准发布
 
@@ -50,6 +50,15 @@
 2026-09-07：为 `/assets/` 添加精确 SPA 回退规则。该路径既是应用路由又是静态资源目录名，直接访问目录会被 Nginx 以 403 拒绝；精确规则现在将目录路径回退到 `index.html`，而具体资源文件继续由静态资源规则提供。
 
 ## 发布历史
+
+### 2026-09-08 09:20 UTC — 20260908-171723
+
+- 状态：发布成功
+- 功能摘要：修复服务器登录页预填默认账号和登录请求发送到前端域名导致 405 的问题。
+- 构建产物：`infinite-canvas-20260908-171723.tgz`，SHA-256 `295bb9ea626a170eae94ccc2bd9fdf50e303f83d1f854c2bc6c8ae666ca85e60`
+- 激活路径：`/var/www/infinite-canvas/releases/20260908-171723`
+- 验证：前端公网首页返回 200；后端 `https://infinite-backend.zemra.cn/api/cloud/v1/auth/login` 返回 200；线上构建产物不再预填 `admin`。
+- 回滚：切回 `/var/www/infinite-canvas/releases/20260908-152504`。
 
 ### 2026-09-08 01:42 CST — 20260908-014204
 
