@@ -5,7 +5,7 @@
 - 站点：`https://infinite.zemra.cn`
 - 服务器：`103.47.83.171`，SSH 端口 `28778`
 - 目标目录：`/var/www/infinite-canvas`
-- 当前 release：`/var/www/infinite-canvas/releases/20260908-171723`
+- 当前 release：`/var/www/infinite-canvas/releases/20260908-175248`
 - 当前链接：`/var/www/infinite-canvas/current`
 - Web 服务：Nginx
 - Nginx 配置：`/etc/nginx/sites-available/infinite-canvas`
@@ -16,13 +16,14 @@
 
 - 站点：`https://infinite-backend.zemra.cn`
 - 目标目录：`/opt/infinite-canvas-cloud`
-- 当前 release：`/opt/infinite-canvas-cloud/releases/20260908-152504`
+- 当前 release：`/opt/infinite-canvas-cloud/releases/20260908-181251`
 - Compose 项目：`/opt/infinite-canvas-cloud/current`
 - 服务：Docker Compose `api`（回环 `127.0.0.1:8080`）与 `postgres`（回环 `127.0.0.1:5432`）
 - Nginx 配置：`/etc/nginx/sites-available/infinite-canvas-cloud`
 - 证书：`/etc/letsencrypt/live/infinite-backend.zemra.cn/`
 - 数据：Docker volumes `infinite-canvas-cloud_postgres_data`、`infinite-canvas-cloud_media_data`
 - 凭据：由服务器外部管理，未写入仓库或部署记录
+- 数据库 schema：`storage_version=2`；用户按账号、角色和工作空间隔离，初始超管账号为 `dongxin`。
 
 ## 验证结果
 
@@ -32,6 +33,8 @@
 - `/assets/` 路由刷新返回 SPA 入口页面，避免与真实静态资源目录同名时触发 Nginx 403。
 - `nginx -t` 通过；本次仅切换静态文件，无需 reload。
 - Let's Encrypt 证书已签发，Certbot 已配置自动续期。
+- 后端新账号登录返回 `200` 和 `super_admin` 角色；旧 `admin` 账号返回 `401`。
+- PostgreSQL 与 API 均运行中，Compose 配置包含 `restart: unless-stopped`。
 
 ## 回滚
 
@@ -59,6 +62,17 @@
 - 激活路径：`/var/www/infinite-canvas/releases/20260908-171723`
 - 验证：前端公网首页返回 200；后端 `https://infinite-backend.zemra.cn/api/cloud/v1/auth/login` 返回 200；线上构建产物不再预填 `admin`。
 - 回滚：切回 `/var/www/infinite-canvas/releases/20260908-152504`。
+
+### 2026-09-08 10:24 UTC — 20260908-175248 / 181251
+
+- 状态：发布成功
+- 功能摘要：增加用户表和 `super_admin`/`user` 角色字段；将旧固定 `admin` 账号迁移为 `dongxin` 超管，并按用户工作空间继续隔离云端数据。
+- 前端构建产物：`infinite-canvas-20260908-175248.tgz`，SHA-256 `51ce086bdf2942dbcecaaf6b9f0d478470ccb6e33f8bfb67f4e787ada96f15f2`
+- 前端激活路径：`/var/www/infinite-canvas/releases/20260908-175248`
+- 后端激活路径：`/opt/infinite-canvas-cloud/releases/20260908-181251`
+- 数据库迁移：已在生产执行 v1 到 v2 迁移；迁移前备份位于 `/www/backups/infinite-canvas-cloud/20260908-095600/`，原工作空间和媒体数据保留，旧会话已失效。
+- 验证：数据库 `storage_version=2`；`dongxin` 登录和 `/auth/me` 返回 `200`、角色 `super_admin`；旧 `admin` 登录返回 `401`；前端首页和 `config.js` 返回 `200`；`nginx -t` 通过。
+- 回滚：前端可切回 `/var/www/infinite-canvas/releases/20260908-171723`；后端代码可切回上一 release，但数据库 v2 迁移前必须先按备份恢复。
 
 ### 2026-09-08 01:42 CST — 20260908-014204
 
