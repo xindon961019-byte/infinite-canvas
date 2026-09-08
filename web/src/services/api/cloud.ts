@@ -34,7 +34,7 @@ async function request<T>(path: string, options: { method?: string; json?: unkno
 
 export const cloudAPI = {
     login: (baseUrl: string, username: string, password: string, signal?: AbortSignal) => request<CloudSession>("/auth/login", { method: "POST", json: { username, password }, baseUrl, anonymous: true, signal }),
-    me: (signal?: AbortSignal) => request<{ username: string; workspaceId: string; expiresAt: string }>("/auth/me", { signal }),
+    me: (signal?: AbortSignal) => request<{ username: string; role: CloudSession["user"]["role"]; workspaceId: string; expiresAt: string }>("/auth/me", { signal }),
     logout: () => request<void>("/auth/logout", { method: "POST" }),
     status: (signal?: AbortSignal) => request<CloudStatus>("/status", { signal }),
     list: (cursor?: string, signal?: AbortSignal) => request<{ items: BackupSummary[]; nextCursor: string | null }>(`/backups${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { signal }),

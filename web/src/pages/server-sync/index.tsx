@@ -90,7 +90,7 @@ export default function ServerSyncPage() {
     return (
         <main className="mx-auto max-w-2xl px-6 pt-10 pb-20 sm:pt-16">
             <div className="mb-8 flex items-center gap-4"><span className="text-muted-foreground">{complete ? <Check className="size-8" /> : download ? <ArrowDownToLine className="size-8" strokeWidth={1.5} /> : <ArrowUpFromLine className="size-8" strokeWidth={1.5} />}</span><div><h1 className="text-2xl font-medium">{complete ? "同步完成" : download ? "数据下载" : "数据上传"}</h1><p className="mt-2 text-sm text-muted-foreground">{download ? "把服务器数据下载至当前设备" : "将本地画布、素材与生成记录保存至服务器"}</p></div></div>
-            <div className="mb-8 flex items-center gap-2 text-xs text-muted-foreground"><Cloud className="size-4 shrink-0" /><span className="break-all">{baseUrl}</span><span className="ml-auto">{session?.user.username}</span></div>
+            <div className="mb-8 flex items-center gap-2 text-xs text-muted-foreground"><Cloud className="size-4 shrink-0" /><span className="break-all">{baseUrl}</span><span className="ml-auto">{session?.user.username} · {session?.user.role === "super_admin" ? "超管" : "用户"}</span></div>
             {error ? <Alert title={error} type="error" showIcon className="mb-6" /> : null}
             {loading ? <div className="py-12 text-center"><Spin /><p className="mt-4 text-sm text-muted-foreground">正在读取同步信息…</p></div> : !complete ? <>
                 {download ? backups.length ? <div className="space-y-6">

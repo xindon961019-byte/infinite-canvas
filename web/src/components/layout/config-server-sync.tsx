@@ -29,7 +29,7 @@ export function ConfigServerSync() {
                 <div><h3 className="flex items-center gap-2 text-base font-medium"><Cloud className="size-5" />服务器同步</h3><p className="mt-2 text-sm text-muted-foreground">保存画布、我的素材、生成记录及关联媒体。下载前可选择备份与恢复范围。</p></div>
                 {session ? <Button type="text" size="small" icon={<LogOut className="size-3.5" />} onClick={() => void logout()} disabled={leaving}>退出登录</Button> : <Button type="text" icon={<LogIn className="size-4" />} onClick={() => void go()} disabled={leaving}>登录服务器</Button>}
             </div>
-            <div className="mb-5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground"><span>{session ? `已登录 · ${session.user.username}` : "尚未登录服务器"}</span><span className="break-all">{baseUrl}</span></div>
+            <div className="mb-5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground"><span>{session ? `已登录 · ${session.user.username} · ${session.user.role === "super_admin" ? "超管" : "用户"}` : "尚未登录服务器"}</span><span className="break-all">{baseUrl}</span></div>
             <div className="grid gap-2 border-y border-border py-4 sm:grid-cols-2">
                 <Button type="text" className="!h-auto !justify-start !rounded-none !px-4 !py-5" disabled={leaving} onClick={() => void go("upload")}>
                     <ArrowUpFromLine className="mr-4 size-6 shrink-0" strokeWidth={1.5} /><span className="text-left"><span className="block text-sm font-medium">数据上传</span><span className="mt-1.5 block text-xs text-muted-foreground">本地数据保存至服务器</span></span>
