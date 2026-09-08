@@ -1,0 +1,1594 @@
+{
+  "type": "object",
+  "properties": {
+    "app": {
+      "const": "infinite-canvas"
+    },
+    "manifestVersion": {
+      "const": 1
+    },
+    "clientId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceCommit": {
+      "type": "string"
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "canvas"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "projects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/project"
+                    }
+                  },
+                  "deleted": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "deletedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "deletedAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "projects",
+                  "deleted"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "assets"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "assets": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/asset"
+                    }
+                  }
+                },
+                "required": [
+                  "assets"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "image-workbench"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "logs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/imageLog"
+                    }
+                  }
+                },
+                "required": [
+                  "logs"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "video-workbench"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "logs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/videoLog"
+                    }
+                  }
+                },
+                "required": [
+                  "logs"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 4
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fileKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "originalStorageKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fileKey",
+          "sha256",
+          "bytes",
+          "mimeType"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "app",
+    "manifestVersion",
+    "clientId",
+    "capturedAt",
+    "domains",
+    "files"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinite-canvas.local/contracts/manifest.schema.json",
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "dataUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "dataUrl"
+      ],
+      "additionalProperties": false
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mimeType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "dataUrl",
+        "durationMs",
+        "width",
+        "height",
+        "bytes"
+      ],
+      "additionalProperties": false
+    },
+    "video": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mimeType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "storageKey",
+        "durationMs",
+        "width",
+        "height",
+        "bytes",
+        "mimeType"
+      ],
+      "additionalProperties": false
+    },
+    "nodeImage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "idle",
+            "success",
+            "loading",
+            "error"
+          ]
+        },
+        "errorDetails": {
+          "type": "string"
+        },
+        "content": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "naturalWidth": {
+          "type": "number"
+        },
+        "naturalHeight": {
+          "type": "number"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mimeType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "content",
+        "naturalWidth",
+        "naturalHeight",
+        "bytes",
+        "mimeType"
+      ],
+      "additionalProperties": false
+    },
+    "nodeText": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "idle",
+            "success",
+            "loading",
+            "error"
+          ]
+        },
+        "errorDetails": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "composerContent": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "errorDetails": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "quality": {
+          "type": "string"
+        },
+        "background": {
+          "type": "string"
+        },
+        "primaryTextId": {
+          "type": "string"
+        },
+        "seconds": {
+          "type": "string"
+        },
+        "vquality": {
+          "type": "string"
+        },
+        "generateAudio": {
+          "type": "string"
+        },
+        "watermark": {
+          "type": "string"
+        },
+        "videoMode": {
+          "type": "string"
+        },
+        "audioVoice": {
+          "type": "string"
+        },
+        "audioFormat": {
+          "type": "string"
+        },
+        "audioSpeed": {
+          "type": "string"
+        },
+        "audioInstructions": {
+          "type": "string"
+        },
+        "primaryImageId": {
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "videoTaskId": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "count": {
+          "type": "number"
+        },
+        "textCount": {
+          "type": "number"
+        },
+        "naturalWidth": {
+          "type": "number"
+        },
+        "naturalHeight": {
+          "type": "number"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "content": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "idle",
+            "success",
+            "loading",
+            "error"
+          ]
+        },
+        "generationMode": {
+          "enum": [
+            "text",
+            "image",
+            "video",
+            "audio"
+          ]
+        },
+        "generationType": {
+          "enum": [
+            "generation",
+            "edit"
+          ]
+        },
+        "reasoningEffort": {
+          "enum": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ]
+        },
+        "texts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nodeText"
+          }
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nodeImage"
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "freeResize": {
+          "type": "boolean"
+        },
+        "interactive": {
+          "type": "boolean"
+        },
+        "videoTaskProvider": {
+          "enum": [
+            "openai",
+            "gemini"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "image",
+            "text",
+            "config",
+            "video",
+            "audio",
+            "group"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "title",
+        "position",
+        "width",
+        "height"
+      ],
+      "additionalProperties": false
+    },
+    "assistantReference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "image",
+            "text",
+            "config",
+            "video",
+            "audio",
+            "group"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "dataUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "storageKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "message": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "user",
+            "assistant",
+            "system",
+            "tool",
+            "error"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "meta": {
+          "type": "string"
+        },
+        "detail": {},
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/assistantReference"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/message"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "messages",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fromNodeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "toNodeId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "fromNodeId",
+              "toNodeId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "chatSessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        },
+        "activeChatId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "backgroundMode": {
+          "enum": [
+            "dots",
+            "lines",
+            "blank"
+          ]
+        },
+        "showImageInfo": {
+          "type": "boolean"
+        },
+        "viewport": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "k": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "k"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "nodes",
+        "connections",
+        "chatSessions",
+        "activeChatId",
+        "backgroundMode",
+        "showImageInfo",
+        "viewport"
+      ],
+      "additionalProperties": false
+    },
+    "asset": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "text"
+            },
+            "title": {
+              "type": "string"
+            },
+            "coverUrl": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "promptId": {
+                  "type": "string"
+                },
+                "githubUrl": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "title",
+            "coverUrl",
+            "tags",
+            "createdAt",
+            "updatedAt",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "image"
+            },
+            "title": {
+              "type": "string"
+            },
+            "coverUrl": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "promptId": {
+                  "type": "string"
+                },
+                "githubUrl": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "dataUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "storageKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "mimeType": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "dataUrl",
+                "width",
+                "height",
+                "bytes",
+                "mimeType"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "title",
+            "coverUrl",
+            "tags",
+            "createdAt",
+            "updatedAt",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "video"
+            },
+            "title": {
+              "type": "string"
+            },
+            "coverUrl": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "promptId": {
+                  "type": "string"
+                },
+                "githubUrl": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "storageKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "width": {
+                  "type": "number"
+                },
+                "height": {
+                  "type": "number"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "mimeType": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "width",
+                "height",
+                "bytes",
+                "mimeType"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "title",
+            "coverUrl",
+            "tags",
+            "createdAt",
+            "updatedAt",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "imageLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "title": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "size": {
+          "type": "string"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "imageModel": {
+              "type": "string"
+            },
+            "quality": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string"
+            },
+            "count": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "imageModel",
+            "quality",
+            "size",
+            "count"
+          ],
+          "additionalProperties": false
+        },
+        "successCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "failCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "imageCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "quality": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "success",
+            "failed"
+          ]
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/image"
+          }
+        },
+        "thumbnails": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "title",
+        "prompt",
+        "time",
+        "model",
+        "references",
+        "durationMs",
+        "size",
+        "config",
+        "successCount",
+        "failCount",
+        "imageCount",
+        "quality",
+        "status",
+        "images",
+        "thumbnails"
+      ],
+      "additionalProperties": false
+    },
+    "videoLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "title": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "size": {
+          "type": "string"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "videoModel": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string"
+            },
+            "vquality": {
+              "type": "string"
+            },
+            "videoSeconds": {
+              "type": "string"
+            },
+            "videoGenerateAudio": {
+              "type": "string"
+            },
+            "videoWatermark": {
+              "type": "string"
+            },
+            "videoMode": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "videoModel",
+            "size",
+            "vquality",
+            "videoSeconds",
+            "videoGenerateAudio",
+            "videoWatermark",
+            "videoMode"
+          ],
+          "additionalProperties": false
+        },
+        "resolution": {
+          "type": "string"
+        },
+        "seconds": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "success",
+            "failed"
+          ]
+        },
+        "task": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "provider": {
+              "enum": [
+                "openai",
+                "gemini",
+                "plugin"
+              ]
+            },
+            "model": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "provider",
+            "model"
+          ],
+          "additionalProperties": false
+        },
+        "video": {
+          "$ref": "#/$defs/video"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "title",
+        "prompt",
+        "time",
+        "model",
+        "references",
+        "durationMs",
+        "size",
+        "config",
+        "resolution",
+        "seconds",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

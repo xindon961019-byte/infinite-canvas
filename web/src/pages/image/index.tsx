@@ -1,3 +1,4 @@
+import { encodeCloudURLs, reviveCloudURLs } from "@/services/cloud/media-urls";
 import { ArrowLeft, ArrowRight, BookOpen, CheckSquare, ClipboardPaste, Download, FolderPlus, History, ImagePlus, LoaderCircle, PenLine, Plus, SlidersHorizontal, Sparkles, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { App, Button, Checkbox, Drawer, Empty, Image, Input, Modal, Tag, Tooltip, Typography } from "antd";
@@ -782,6 +783,7 @@ async function readStoredLogs() {
 }
 
 async function normalizeLog(log: Partial<GenerationLog>): Promise<GenerationLog> {
+    log = await reviveCloudURLs(log);
     const references = await Promise.all(
         (log.references || []).map(async (item) => ({
             ...item,
@@ -817,12 +819,12 @@ async function normalizeLog(log: Partial<GenerationLog>): Promise<GenerationLog>
 }
 
 function serializeLog(log: GenerationLog): GenerationLog {
-    return {
+    return encodeCloudURLs({
         ...log,
         references: log.references.map((item) => ({ ...item, dataUrl: item.storageKey ? "" : item.dataUrl })),
         images: log.images.map((image) => ({ ...image, dataUrl: image.storageKey ? "" : image.dataUrl })),
         thumbnails: [],
-    };
+    });
 }
 
 function normalizeLogConfig(log: Partial<GenerationLog>): GenerationLogConfig {

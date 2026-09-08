@@ -1,35 +1,31 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 
-import { AnalyticsTracker } from "@/components/layout/analytics-tracker";
-import UserLayout from "@/layouts/user-layout";
-import AssetsPage from "@/pages/assets";
-import CanvasPage from "@/pages/canvas";
-import CanvasProjectPage from "@/pages/canvas/project";
-import ConfigPage from "@/pages/config";
-import HomePage from "@/pages/home";
-import ImagePage from "@/pages/image";
-import NotFound from "@/pages/not-found";
-import PromptsPage from "@/pages/prompts";
-import VideoPage from "@/pages/video";
-
+// Keep the business stores out of login/sync pages until the application lock is acquired.
 export const router = createBrowserRouter([
     {
-        element: (
-            <UserLayout>
-                <AnalyticsTracker />
-                <Outlet />
-            </UserLayout>
-        ),
+        lazy: async () => {
+            const [{ AppProviders }, { default: UserLayout }, { AnalyticsTracker }] = await Promise.all([
+                import("@/components/layout/app-providers"), import("@/layouts/user-layout"), import("@/components/layout/analytics-tracker"),
+            ]);
+            return { Component: function UserRoot() { return <AppProviders><UserLayout><AnalyticsTracker /><Outlet /></UserLayout></AppProviders>; } };
+        },
         children: [
-            { path: "/", element: <HomePage /> },
-            { path: "/image", element: <ImagePage /> },
-            { path: "/video", element: <VideoPage /> },
-            { path: "/assets", element: <AssetsPage /> },
-            { path: "/prompts", element: <PromptsPage /> },
-            { path: "/canvas", element: <CanvasPage /> },
-            { path: "/canvas/:id", element: <CanvasProjectPage /> },
-            { path: "/config", element: <ConfigPage /> },
+            { path: "/", lazy: async () => ({ Component: (await import("@/pages/home")).default }) },
+            { path: "/image", lazy: async () => ({ Component: (await import("@/pages/image")).default }) },
+            { path: "/video", lazy: async () => ({ Component: (await import("@/pages/video")).default }) },
+            { path: "/assets", lazy: async () => ({ Component: (await import("@/pages/assets")).default }) },
+            { path: "/prompts", lazy: async () => ({ Component: (await import("@/pages/prompts")).default }) },
+            { path: "/canvas", lazy: async () => ({ Component: (await import("@/pages/canvas")).default }) },
+            { path: "/canvas/:id", lazy: async () => ({ Component: (await import("@/pages/canvas/project")).default }) },
+            { path: "/config", lazy: async () => ({ Component: (await import("@/pages/config")).default }) },
         ],
     },
-    { path: "*", element: <NotFound /> },
+    {
+        lazy: async () => ({ Component: (await import("@/layouts/cloud-layout")).default }),
+        children: [
+            { path: "/login", lazy: async () => ({ Component: (await import("@/pages/login")).default }) },
+            { path: "/server-sync", lazy: async () => ({ Component: (await import("@/pages/server-sync")).default }) },
+        ],
+    },
+    { path: "*", lazy: async () => ({ Component: (await import("@/pages/not-found")).default }) },
 ]);

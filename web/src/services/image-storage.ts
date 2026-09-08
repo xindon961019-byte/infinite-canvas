@@ -1,4 +1,5 @@
 import localforage from "localforage";
+import { cloudMediaKey, rememberMediaURL } from "@/services/cloud/media-urls";
 
 import { nanoid } from "nanoid";
 import i18n from "@/i18n";
@@ -49,7 +50,8 @@ async function storeImage(blob: Blob, options?: ImageReadOptions): Promise<Uploa
         throwIfAborted(options?.signal);
         await store.setItem(storageKey, blob);
         throwIfAborted(options?.signal);
-        objectUrls.set(storageKey, url);
+        rememberMediaURL(storageKey, url);
+    objectUrls.set(storageKey, url);
         return { url, storageKey, width: meta.width, height: meta.height, bytes: blob.size, mimeType: blob.type.startsWith("image/") ? blob.type : "" };
     } catch (error) {
         URL.revokeObjectURL(url);
@@ -137,6 +139,7 @@ export async function resolveImageUrl(storageKey?: string, fallback = "") {
     const blob = await store.getItem<Blob>(storageKey);
     if (!blob) return fallback;
     const url = URL.createObjectURL(blob);
+    rememberMediaURL(storageKey, url);
     objectUrls.set(storageKey, url);
     return url;
 }
@@ -148,6 +151,7 @@ export async function getImageBlob(storageKey: string) {
 export async function setImageBlob(storageKey: string, blob: Blob) {
     await store.setItem(storageKey, blob);
     const url = URL.createObjectURL(blob);
+    rememberMediaURL(storageKey, url);
     objectUrls.set(storageKey, url);
     return url;
 }
@@ -187,6 +191,7 @@ export async function cleanupUnusedImages(usedData: unknown) {
 }
 
 export function collectImageStorageKeys(value: unknown, keys = new Set<string>()) {
+    if (typeof value === "string") { const key = cloudMediaKey(value); if (key && key.startsWith("image:")) keys.add(key); return keys; }
     if (!value || typeof value !== "object") return keys;
     if ("storageKey" in value && typeof value.storageKey === "string" && value.storageKey.startsWith("image:")) keys.add(value.storageKey);
     Object.values(value).forEach((item) => (Array.isArray(item) ? item.forEach((child) => collectImageStorageKeys(child, keys)) : collectImageStorageKeys(item, keys)));

@@ -45,6 +45,12 @@ type PersistedCanvasState = Pick<CanvasStore, "projects" | "deletedProjects">;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let queuedPersistState: PersistedCanvasState | null = null;
 
+export async function flushCanvasPersistence() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    const { projects, deletedProjects } = useCanvasStore.getState();
+    await localForageStorage.setItem(CANVAS_STORE_KEY, JSON.stringify({ state: { projects, deletedProjects }, version: 0 }));
+}
+
 const canvasStorage: PersistStorage<CanvasStore> = {
     getItem: async (name) => {
         const value = await localForageStorage.getItem(name);
