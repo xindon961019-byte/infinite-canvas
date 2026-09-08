@@ -12,6 +12,18 @@
 - 证书：`/etc/letsencrypt/live/infinite.zemra.cn/`
 - 发布方式：本地 Vite 生产构建后上传静态文件，由 Nginx 提供 SPA 和 HTTPS
 
+## 云端后端
+
+- 站点：`https://infinite-backend.zemra.cn`
+- 目标目录：`/opt/infinite-canvas-cloud`
+- 当前 release：`/opt/infinite-canvas-cloud/releases/20260908-152504`
+- Compose 项目：`/opt/infinite-canvas-cloud/current`
+- 服务：Docker Compose `api`（回环 `127.0.0.1:8080`）与 `postgres`（回环 `127.0.0.1:5432`）
+- Nginx 配置：`/etc/nginx/sites-available/infinite-canvas-cloud`
+- 证书：`/etc/letsencrypt/live/infinite-backend.zemra.cn/`
+- 数据：Docker volumes `infinite-canvas-cloud_postgres_data`、`infinite-canvas-cloud_media_data`
+- 凭据：由服务器外部管理，未写入仓库或部署记录
+
 ## 验证结果
 
 - `http://infinite.zemra.cn/` 返回 301 并跳转到 HTTPS。
@@ -52,6 +64,19 @@
 - 公网验证：首页、新版 JavaScript、CSS、`config.js` 与 `/assets/` SPA 回退均返回 200。
 - 问题：解压时 GNU tar 忽略 macOS provenance 扩展属性，不影响文件内容或站点运行。
 - 后续：无。
+
+### 2026-09-08 08:00 UTC — 20260908-152504
+
+- 状态：发布成功
+- 功能摘要：部署前端云端同步入口及同级 Go 云端后端，新增后端域名反向代理和 HTTPS。
+- 前端构建产物：`infinite-canvas-20260908-152504.tgz`，SHA-256 `8fb9f23b4bb03e955203fb66cd47164bbfe4d48ab1d21edce9be666680a0abda`
+- 前端激活路径：`/var/www/infinite-canvas/releases/20260908-152504`
+- 后端激活路径：`/opt/infinite-canvas-cloud/releases/20260908-152504`
+- 后端服务：Docker Compose API 和 PostgreSQL，数据卷未覆盖；数据库迁移成功，固定管理员登录接口验证成功。
+- Nginx：`infinite-backend.zemra.cn` 的 `/api/cloud/v1/`、`/media-access/` 已代理到 `127.0.0.1:8080`；HTTP 自动跳转 HTTPS。
+- 验证：前端公网首页和静态资源 200；后端 HTTPS 登录 200；CORS、证书和 `certbot renew --dry-run` 均通过。
+- 问题：服务器无法访问 Docker Hub 和 `proxy.golang.org`；本次 release 构建临时使用服务器可访问的 Docker 镜像源及 `goproxy.cn`，不影响应用运行。
+- 回滚：前端切回 `/var/www/infinite-canvas/releases/20260908-014204`；后端切回上一个 `/opt/infinite-canvas-cloud/releases/` 目录并保留现有数据卷。
 
 ## 凭据
 
