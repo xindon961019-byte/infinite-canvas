@@ -1,7 +1,7 @@
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-export type DomainName = "canvas" | "assets" | "image-workbench" | "video-workbench";
-export const domainNames: DomainName[] = ["canvas", "assets", "image-workbench", "video-workbench"];
-export const domainLabels: Record<DomainName, string> = { canvas: "画布", assets: "我的素材", "image-workbench": "图片生成记录", "video-workbench": "视频生成记录" };
+export type DomainName = "canvas" | "assets" | "image-workbench" | "video-workbench" | "subjects" | "ai-workbench" | "settings";
+export const domainNames: DomainName[] = ["canvas", "assets", "image-workbench", "video-workbench", "subjects", "ai-workbench", "settings"];
+export const domainLabels: Record<DomainName, string> = { canvas: "画布", assets: "我的素材", "image-workbench": "图片生成记录", "video-workbench": "视频生成记录", subjects: "主体", "ai-workbench": "AI 工作台", settings: "配置、密钥与渠道脚本" };
 export type MediaRef = { pointer: string; fileKey: string; representation: "blob-url" | "data-url" | "storage-key" };
 export type Domain = { name: DomainName; domainVersion: 1; data: { [key: string]: Json }; mediaRefs: MediaRef[] };
 export type ManifestFile = { fileKey: string; sha256: string; bytes: number; mimeType: string; originalStorageKey?: string };
@@ -9,5 +9,5 @@ export type Manifest = { app: "infinite-canvas"; manifestVersion: 1; clientId: s
 export type Media = { mediaId: string; sha256: string; bytes: number; mimeType: string };
 export type Backup = { backupId: string; state: "draft" | "committed" | "deleted" | "cancelled"; manifest: Manifest | null; manifestSha256: string; mediaBindings: Media[]; missing: string[]; createdAt: string; committedAt: string | null };
 export type BackupSummary = Pick<Backup, "backupId" | "createdAt" | "committedAt"> & { domains: { name: DomainName; records: number }[]; bytes: number };
-export type CloudStatus = { serverId: string; workspaceId: string; apiVersion: number; policy: { maxFileBytes: number; maxJSONBytes: number; maxResolveBatch: number; maxJSONDepth: number; maxRecords: number } };
+export type CloudStatus = { serverId: string; workspaceId: string; apiVersion: number; capabilities?: { incrementalSync?: boolean }; domainVersions: Partial<Record<DomainName, number[]>>; policy: { maxFileBytes: number; maxJSONBytes: number; maxResolveBatch: number; maxJSONDepth: number; maxRecords: number } };
 export type Progress = (message: string) => void;

@@ -3,9 +3,9 @@
 ## 当前部署
 
 - 站点：`https://infinite.zemra.cn`
-- 服务器：`103.47.83.171`，SSH 端口 `28778`
+- 服务器：`103.47.83.171`，SSH 端口 `28778`，运维账号 `root`
 - 目标目录：`/var/www/infinite-canvas`
-- 当前 release：`/var/www/infinite-canvas/releases/20260908-175248`
+- 当前 release：`/var/www/infinite-canvas/releases/20260911-0840`
 - 当前链接：`/var/www/infinite-canvas/current`
 - Web 服务：Nginx
 - Nginx 配置：`/etc/nginx/sites-available/infinite-canvas`
@@ -16,14 +16,15 @@
 
 - 站点：`https://infinite-backend.zemra.cn`
 - 目标目录：`/opt/infinite-canvas-cloud`
-- 当前 release：`/opt/infinite-canvas-cloud/releases/20260908-181251`
+- 当前 release：`/opt/infinite-canvas-cloud/releases/20260911-0840`
 - Compose 项目：`/opt/infinite-canvas-cloud/current`
 - 服务：Docker Compose `api`（回环 `127.0.0.1:8080`）与 `postgres`（回环 `127.0.0.1:5432`）
 - Nginx 配置：`/etc/nginx/sites-available/infinite-canvas-cloud`
 - 证书：`/etc/letsencrypt/live/infinite-backend.zemra.cn/`
 - 数据：Docker volumes `infinite-canvas-cloud_postgres_data`、`infinite-canvas-cloud_media_data`
 - 凭据：由服务器外部管理，未写入仓库或部署记录
-- 数据库 schema：`storage_version=2`；用户按账号、角色和工作空间隔离，初始超管账号为 `dongxin`。
+- 数据库 schema：`storage_version=3`；用户按账号、角色和工作空间隔离，新增 `sync_records` 增量索引。
+- 当前镜像：`infinite-canvas-cloud-api:20260911-0840`；`compose.override.yaml` 固定该镜像，普通 `docker compose` 操作也会自动使用新版本。
 
 ## 验证结果
 
@@ -38,7 +39,7 @@
 
 ## 回滚
 
-当前已知可用的上一版本为 `/var/www/infinite-canvas/releases/20260908-152504`。回滚时将 `current` 原子切换到该目录，执行 `nginx -t`，然后重新检查站点内网与公网地址。静态文件切换不需要重启 Nginx。
+前端上一可用版本为 `/var/www/infinite-canvas/releases/20260908-175248`，可原子切回。后端上一版本为 `/opt/infinite-canvas-cloud/releases/20260908-181251`，镜像保留为 `infinite-canvas-cloud-api:rollback-20260911-071147`。旧后端只支持数据库 v2，不能直接对 v3 切换二进制；需按后端部署文档恢复到独立数据库并核验，再切换服务。成套回滚备份位于 `/www/backups/infinite-canvas-cloud/20260911-071147/`，恢复会影响备份之后的新写入，操作前需再次确认范围。
 
 ## 标准发布
 
@@ -53,6 +54,32 @@
 2026-09-07：为 `/assets/` 添加精确 SPA 回退规则。该路径既是应用路由又是静态资源目录名，直接访问目录会被 Nginx 以 403 拒绝；精确规则现在将目录路径回退到 `index.html`，而具体资源文件继续由静态资源规则提供。
 
 ## 发布历史
+
+### 2026-09-11 08:44 UTC — 20260911-0840
+
+- 已部署前后端：主体音频发送前上传去重、长期音频 URL、视频脚本 audioUrls 与公网地址编写说明。
+- Nginx 新增 `/reference-audio/` 转发；配置验证通过，HTTPS 首页及入口 JS/CSS 与本地构建逐字节一致。
+- 新发布接口匿名请求 401，无效音频链接返回后端 404；API 和 PostgreSQL 运行正常。
+- 本地 Vite 构建、Linux/amd64 Go 编译和 cloud 包测试通过；未进行真实账号音频上传及付费模型验收，不能视为三个渠道均已验证。
+- 备份：`/www/backups/infinite-canvas-cloud/20260911-0840/`，包含可读的数据库 custom dump、完整媒体归档、Nginx 和 Compose override；未迁移数据库。
+- 回滚：前后端 current 切回各自 releases/20260911-071147，后端运行 docker compose up -d --no-build api；Nginx 原配置在上述备份目录。数据库无需降级。
+- 发布包 SHA-256：c7c2e44f6fd36364e5f740b76bcccb4aeb05691903ef5458513809601014ad3f；后端二进制 SHA-256：864ca0da80b0ede75f54cf51572c2e1a491241b01c2e0c3a45fd8f82902cda6f。
+- 保留已有其他站点 Nginx 协议警告；tar 的 macOS provenance 属性提示不影响静态文件。凭据由外部管理。
+
+
+### 2026-09-11 07:18 UTC — 20260911-071147
+
+- 状态：发布成功。
+- 功能：AI 工作台与主体界面、同账号记录级增量同步、配置密钥和渠道脚本同步、冲突选择及独立历史恢复入口。
+- 前端：`infinite-web-20260911-071147.tgz`，SHA-256 `cff2baf34d2a348b0438979da015bb17031406ed4e6b8b05583ed29e92f69a07`。
+- 后端及隔离测试包：`infinite-api-20260911-071147.tgz`，SHA-256 `4703a3f27176401fa9c4473e6744cba3cd6ec67b248ac15cef25c25678f4fedc`。测试二进制随后单独更新测试账号名，不影响生产二进制。
+- 后端通过本地 Linux/amd64 交叉编译，复用原运行镜像中的证书和用户配置；没有在服务器下载新依赖，没有改动共享 `.env`。
+- 备份：停写期间生成 custom 格式 `database.dump` 和完整 `media.tgz`，归档可读、权限为 0600。数据库摘要 `e1d7152682faa0e45c287d2d94b84fc12e64fcbf0ae281626b68c99389482b3b`；媒体摘要 `c09b71e9a35a542e48c7b4e0f087c97c01dfae936777988cc262f62f2f393eb7`。
+- 迁移：v2 → v3 成功；原有 1 个用户、3 份备份、6 个媒体记录保持不变。
+- 测试：在无公网端口、无生产数据卷的独立 PostgreSQL 容器运行全部 Go 测试，包含并发去重、增量发布、幂等、版本冲突与跨工作空间隔离，全部通过；测试容器已清理。
+- 问题与解决：测试账号中的连字符不符合现有用户名规则，改为下划线后重跑通过。Vite 有分包体积提示；Nginx 存在其他站点的既有协议配置警告，校验成功，本次未改动这些站点。
+- 验证：公网首页、`/ai`、`/server-sync`、`/assets/`、`config.js` 返回 200；首页与本地构建一致，入口 JS/CSS SHA-256 一致，静态资源使用 immutable 缓存；新 `/api/cloud/v1/sync` 未认证访问返回 401。其他原有容器保持运行。
+- 回滚点：前端 `20260908-175248`、后端 `20260908-181251` 和上述成套备份。未进行真实用户数据上传或双设备人工验收。
 
 ### 2026-09-08 09:20 UTC — 20260908-171723
 

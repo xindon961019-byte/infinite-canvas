@@ -9,8 +9,14 @@ import { downloadToLocal, uploadLocal } from "@/services/cloud/sync";
 import { domainCounts } from "@/services/cloud/codec";
 import { localDomains, readLocalData } from "@/services/cloud/local-data";
 import { withSyncLock } from "@/services/cloud/session-lock";
+import IncrementalPage from "./incremental-page";
 
 export default function ServerSyncPage() {
+    const [params] = useSearchParams();
+    return params.get("mode") === "restore" ? <BackupPage /> : <IncrementalPage />;
+}
+
+function BackupPage() {
     const { modal } = App.useApp();
     const [params] = useSearchParams();
     const download = params.get("direction") === "download";
@@ -75,7 +81,7 @@ export default function ServerSyncPage() {
             setLocalCounts(counts);
             modal.confirm({
                 title: "将服务器数据下载并替换本地？", okText: "下载并替换", cancelText: "取消", okButtonProps: { danger: true },
-                content: <div className="py-2 text-sm leading-7"><p>所选范围会整体替换，未选择的数据保留。恢复前的本地副本将一并保存。</p>{domains.map(name => <div key={name}>{domainLabels[name]}：本地 {counts.find(d => d.name === name)?.records || 0} 条 → 服务器 {selected?.domains.find(d => d.name === name)?.records || 0} 条</div>)}<p className="mt-2 text-xs text-muted-foreground">服务器为空的数据范围也会清空本地对应内容。历史生成任务不会自动续跑。</p></div>,
+                content: <div className="py-2 text-sm leading-7"><p>所选范围会整体替换，未选择的数据保留。恢复前的本地副本将一并保存。AI 工作台与同快照主体一同恢复，避免引用错位。</p>{domains.map(name => <div key={name}>{domainLabels[name]}：本地 {counts.find(d => d.name === name)?.records || 0} 条 → 服务器 {selected?.domains.find(d => d.name === name)?.records || 0} 条</div>)}<p className="mt-2 text-xs text-muted-foreground">服务器为空的数据范围也会清空本地对应内容。历史生成任务不会自动续跑。</p></div>,
                 onOk: run,
             });
         } catch (cause) { setError(cause instanceof Error ? cause.message : "无法读取本地数据"); }
@@ -95,7 +101,13 @@ export default function ServerSyncPage() {
             {loading ? <div className="py-12 text-center"><Spin /><p className="mt-4 text-sm text-muted-foreground">正在读取同步信息…</p></div> : !complete ? <>
                 {download ? backups.length ? <div className="space-y-6">
                     <div><label className="mb-2 block text-sm" htmlFor="server-backup">选择服务器备份</label><Select id="server-backup" className="w-full" value={backupId} disabled={busy} onChange={id => { setBackupId(id); setDomains(backups.find(b => b.backupId === id)!.domains.map(d => d.name)); }} options={backups.map(backup => ({ value: backup.backupId, label: `${new Date(backup.createdAt).toLocaleString("zh-CN")} · ${backup.domains.reduce((n, d) => n + d.records, 0)} 条记录` }))} />{cursor ? <Button type="link" size="small" className="mt-2 !px-0" disabled={busy} onClick={() => void more()}>加载更早的备份</Button> : null}</div>
-                    <div><p className="mb-3 text-sm">恢复范围</p><Checkbox.Group value={domains} disabled={busy} onChange={values => setDomains(values as DomainName[])} options={selected?.domains.map(d => ({ label: `${domainLabels[d.name]} · ${d.records} 条`, value: d.name }))} className="!flex !flex-col gap-3" /></div>
+                    <div><p className="mb-3 text-sm">恢复范围</p><Checkbox.Group value={domains} disabled={busy} onChange={values => {
+                        const next = values as DomainName[];
+                        if (next.includes("ai-workbench") && !next.includes("subjects")) {
+                            if (domains.includes("subjects")) setDomains(next.filter(name => name !== "ai-workbench"));
+                            else setDomains([...next, "subjects"]);
+                        } else setDomains(next);
+                    }} options={selected?.domains.map(d => ({ label: `${domainLabels[d.name]} · ${d.records} 条`, value: d.name }))} className="!flex !flex-col gap-3" /></div>
                 </div> : <Empty description="服务器还没有已完成的备份" /> : <div className="divide-y divide-border border-y border-border">{localCounts.map(d => <div key={d.name} className="flex justify-between py-4 text-sm"><span>{domainLabels[d.name]}</span><span className="text-muted-foreground">{d.records} 条</span></div>)}<p className="py-4 text-xs leading-6 text-muted-foreground">上传会创建一份新的服务器备份。请关闭其他编辑标签页，避免捕获到正在变化的数据。</p></div>}
             </> : <div className="border-y border-border py-8"><p className="text-base">{progress}</p><p className="mt-3 text-sm leading-6 text-muted-foreground">{download ? "返回工作台后即可使用恢复的数据。所选范围已整体更新，其余本地数据保持原样。" : "备份已完成文件校验，可以在数据下载中选择并恢复。"}</p></div>}
             {busy ? <div className="mt-7 flex items-center gap-3" role="status" aria-live="polite"><Spin size="small" /><span className="text-sm text-muted-foreground">{progress}</span></div> : null}

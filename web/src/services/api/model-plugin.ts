@@ -3,6 +3,8 @@ import axios, { type AxiosRequestConfig } from "axios";
 import i18n from "@/i18n";
 import { buildApiUrl, withLocalProxy, type AiConfig, type ModelCapability } from "@/stores/use-config-store";
 
+import type { CreationRequest } from "@/lib/ai/creation-request";
+
 type RequestOptions = { signal?: AbortSignal };
 
 export type PluginHttpOptions = {
@@ -27,8 +29,10 @@ export type RunPluginArgs = {
     images?: string[];
     videos?: File[];
     audios?: File[];
+    audioUrls?: string[];
     messages?: unknown[];
     params?: Record<string, unknown>;
+    creation?: CreationRequest;
     signal?: AbortSignal;
     onDelta?: (text: string) => void;
 };
@@ -115,6 +119,10 @@ export async function runModelPlugin<T = unknown>(args: RunPluginArgs): Promise<
     const http = createPluginHttp(config, { signal: args.signal });
     const request = createPluginRequest(config, { signal: args.signal });
     const poll = createPoll(args.signal);
+    const cloud = { mediaUrl: async (input: Blob | string, options: { kind: "image" | "video" | "audio" }) => {
+        const { modelMediaURL } = await import("@/services/api/model-media");
+        return modelMediaURL(input, options.kind, args.signal);
+    } };
     const runner = new Function(
         "prompt",
         "images",
@@ -133,6 +141,9 @@ export async function runModelPlugin<T = unknown>(args: RunPluginArgs): Promise<
         "sleep",
         "signal",
         "onDelta",
+        "creation",
+        "cloud",
+        "audioUrls",
         `"use strict"; return (async () => {\n${args.script}\n})();`,
     ) as (...fnArgs: unknown[]) => Promise<T>;
     try {
@@ -154,6 +165,9 @@ export async function runModelPlugin<T = unknown>(args: RunPluginArgs): Promise<
             (ms: number) => sleep(ms, args.signal),
             args.signal,
             args.onDelta,
+            args.creation,
+            cloud,
+            args.audioUrls || [],
         );
     } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") throw error;
@@ -168,9 +182,12 @@ export type PluginVariable = { name: string; type: string; desc: string; capabil
 /** Documentation surface shown in the script editor. */
 export function getPluginVariables(): PluginVariable[] {
     return [
+        { name: "audioUrls", type: "string[]", desc: i18n.t("modelPlugin.referenceAudioGuide"), capabilities: ["video"] },
         { name: "prompt", type: "string", desc: i18n.t("modelPlugin.variables.prompt"), capabilities: ["image", "video", "audio"] },
         { name: "images", type: "string[]", desc: i18n.t("modelPlugin.variables.images"), capabilities: ["image", "video"] },
         { name: "videos", type: "File[]", desc: i18n.t("modelPlugin.variables.videos"), capabilities: ["video"] },
+        { name: "creation", type: "CreationRequest | undefined", desc: "AI 工作台结构化创作上下文：parts、subjects、media（含 owners）、preferences；普通调用未传入时为 undefined。" },
+        { name: "cloud", type: "{ mediaUrl(input: Blob | string, options: { kind: 'image' | 'video' | 'audio' }): Promise<{ url: string; expiresAt: string }> }", desc: "按需将本地媒体转换为模型可读取的临时链接；需要登录服务器，继承取消信号，不要保存返回链接。" },
         { name: "audios", type: "File[]", desc: i18n.t("modelPlugin.variables.audios"), capabilities: ["video"] },
         { name: "messages", type: "{ role, content }[]", desc: i18n.t("modelPlugin.variables.messages"), capabilities: ["text"] },
         { name: "params", type: "object", desc: i18n.t("modelPlugin.variables.params") },
@@ -209,6 +226,7 @@ export function getPluginAuthoringPrompt(capability: ModelCapability, modelName:
         i18n.t("modelPlugin.authoring.rules"),
     ];
     const templates = getPluginTemplates()[capability];
+    if (capability === "video") lines.push("", i18n.t("modelPlugin.referenceAudioGuide"), "", "const referenceAudioUrls = await Promise.all(audios.map(async (file, index) => audioUrls[index] || (await cloud.mediaUrl(file, { kind: 'audio' })).url));", "// Map referenceAudioUrls to the provider's documented audio fields; this is not a complete request body.");
     if (templates.length) {
         lines.push("", i18n.t("modelPlugin.authoring.examplesTitle"));
         for (const template of templates) {

@@ -11,6 +11,7 @@ export const router = createBrowserRouter([
         },
         children: [
             { path: "/", lazy: async () => ({ Component: (await import("@/pages/home")).default }) },
+            { path: "/ai", lazy: async () => ({ Component: (await import("@/pages/ai")).default }) },
             { path: "/image", lazy: async () => ({ Component: (await import("@/pages/image")).default }) },
             { path: "/video", lazy: async () => ({ Component: (await import("@/pages/video")).default }) },
             { path: "/assets", lazy: async () => ({ Component: (await import("@/pages/assets")).default }) },

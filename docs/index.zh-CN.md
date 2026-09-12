@@ -30,6 +30,7 @@
 
 ## 项目进度
 
+- [AI 创作台需求文档](./AI创作台需求文档.md)：一期需求，尚未实现。
 - [更新日志](/zh-CN/docs/progress/changelog)
 - [待测试](/zh-CN/docs/progress/pending-test)
 - [TODO](/zh-CN/docs/progress/todo)

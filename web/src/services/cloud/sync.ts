@@ -3,7 +3,7 @@ import { useCloudStore } from "@/stores/use-cloud-store";
 import { assertManifest, captureLocal, hashBlob, hashManifest } from "./codec";
 import { getSyncState, restoreLocalData, setSyncState } from "./local-data";
 import { withSyncLock } from "./session-lock";
-import type { DomainName, Manifest, Progress } from "./types";
+import { domainLabels, type DomainName, type Manifest, type Progress } from "./types";
 
 type UploadJob = { version: 1; serverId: string; workspaceId: string; key: string; manifest: Manifest; blobs: Map<string, Blob>; complete: boolean };
 
@@ -16,6 +16,9 @@ async function identity(signal?: AbortSignal) {
 export function uploadLocal(operationId: string, progress: Progress, signal?: AbortSignal) {
     return withSyncLock(async () => {
         const status = await identity(signal);
+        for (const name of ["subjects", "ai-workbench", "settings"] as const) {
+            if (!status.domainVersions?.[name]?.includes(1)) throw new Error(`服务器尚不支持${domainLabels[name]}同步，请更新后端后再上传。`);
+        }
         let job = await getSyncState<UploadJob>(`upload:${operationId}`);
         if (job && job.version !== 1) throw new Error("发现未知版本的上传记录，请保留本地数据并检查版本");
         if (!job || job.complete || job.serverId !== status.serverId || job.workspaceId !== status.workspaceId) {
@@ -54,6 +57,7 @@ export function downloadToLocal(backupId: string, selected: DomainName[], progre
         assertManifest(backup.manifest);
         if (await hashManifest(backup.manifest, signal) !== backup.manifestSha256) throw new Error("服务器备份清单校验失败");
         if (!selected.length || new Set(selected).size !== selected.length || selected.some(name => !backup.manifest!.domains.some(d => d.name === name))) throw new Error("请选择该备份中包含的数据范围");
+        if (selected.includes("ai-workbench") && !selected.includes("subjects")) throw new Error("恢复 AI 工作台时，请同时选择主体，保持引用关系一致");
         const keys = new Set(backup.manifest.domains.filter(d => selected.includes(d.name)).flatMap(d => d.mediaRefs.map(ref => ref.fileKey)));
         const files = new Map<string, Blob>(); const bySHA = new Map<string, Blob>();
         for (const file of backup.manifest.files.filter(file => keys.has(file.fileKey))) {

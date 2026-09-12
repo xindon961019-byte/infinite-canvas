@@ -10,6 +10,8 @@ import { getMediaBlob } from "@/services/file-storage";
 import { getImageBlob, uploadImage } from "@/services/image-storage";
 import { cn } from "@/lib/utils";
 import { useAssetStore, type Asset, type AssetKind, type ImageAsset } from "@/stores/use-asset-store";
+import { SubjectDialog } from "@/components/subjects/subject-dialog";
+import { useSubjectStore, type Subject } from "@/stores/use-subject-store";
 import { exportAssets, readAssetPackage } from "./asset-transfer";
 
 type AssetFormValues = {
@@ -24,10 +26,10 @@ type AssetFormValues = {
 
 type ImageDraft = ImageAsset["data"] | null;
 
-const kindOptions = ["all", "text", "image", "video"] as const;
+const kindOptions = ["all", "subject", "text", "image", "video"] as const;
 
 export default function AssetsPage() {
-    const { message } = App.useApp();
+    const { message, modal } = App.useApp();
     const { t } = useTranslation();
     const copyText = useCopyText();
     const [form] = Form.useForm<AssetFormValues>();
@@ -39,7 +41,13 @@ export default function AssetsPage() {
     const updateAsset = useAssetStore((state) => state.updateAsset);
     const removeAsset = useAssetStore((state) => state.removeAsset);
     const [keyword, setKeyword] = useState("");
-    const [kindFilter, setKindFilter] = useState<AssetKind | "all">("all");
+    const [kindFilter, setKindFilter] = useState<AssetKind | "all" | "subject">("all");
+    const subjects = useSubjectStore((state) => state.subjects);
+    const loadSubjects = useSubjectStore((state) => state.load);
+    const removeSubject = useSubjectStore((state) => state.remove);
+    const [subjectDialog, setSubjectDialog] = useState<Subject | "new" | null>(null);
+    const [previewSubject, setPreviewSubject] = useState<Subject | null>(null);
+    useEffect(() => { void loadSubjects().catch(() => message.error("主体读取失败，请刷新后重试")); }, [loadSubjects, message]);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -63,15 +71,13 @@ export default function AssetsPage() {
         });
     }, [validAssets, keyword, kindFilter]);
 
-    const visibleAssets = useMemo(() => {
-        const start = (page - 1) * pageSize;
-        return filteredAssets.slice(start, start + pageSize);
-    }, [filteredAssets, page, pageSize]);
-
-    useEffect(() => {
-        const maxPage = Math.max(1, Math.ceil(filteredAssets.length / pageSize));
-        setPage((value) => Math.min(value, maxPage));
-    }, [filteredAssets.length, pageSize]);
+    const filteredSubjects = useMemo(() => subjects.filter((subject) => (kindFilter === "all" || kindFilter === "subject") && `${subject.name} ${subject.description}`.toLowerCase().includes(keyword.trim().toLowerCase())), [subjects, kindFilter, keyword]);
+    const entries = useMemo(() => [
+        ...filteredSubjects.map((subject) => ({ kind: "subject" as const, subject })),
+        ...filteredAssets.map((asset) => ({ kind: "asset" as const, asset })),
+    ], [filteredSubjects, filteredAssets]);
+    const visibleEntries = entries.slice((page - 1) * pageSize, page * pageSize);
+    useEffect(() => { setPage((value) => Math.min(value, Math.max(1, Math.ceil(entries.length / pageSize)))); }, [entries.length, pageSize]);
 
     const openCreate = () => {
         setEditingAsset(null);
@@ -236,7 +242,7 @@ export default function AssetsPage() {
                                                 setKindFilter(option);
                                             }}
                                         >
-                                            {option === "all" ? t("common.all") : t(`assets.kinds.${option}`)}
+                                            {option === "all" ? t("common.all") : option === "subject" ? "主体" : t(`assets.kinds.${option}`)}
                                         </Tag.CheckableTag>
                                     ))}
                                 </div>
@@ -247,21 +253,21 @@ export default function AssetsPage() {
                                     className="cursor-pointer text-sm font-medium text-stone-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:underline dark:text-stone-300"
                                     onClick={() => void exportAllAssets()}
                                 >
-                                    {t("assets.export")}
+                                    {subjects.length ? "导出普通资产" : t("assets.export")}
                                 </button>
                                 <button
                                     type="button"
                                     className="cursor-pointer text-sm font-medium text-stone-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:underline dark:text-stone-300"
                                     onClick={() => assetInputRef.current?.click()}
                                 >
-                                    {t("assets.import")}
+                                    {subjects.length ? "导入普通资产" : t("assets.import")}
                                 </button>
                                 <button
                                     type="button"
                                     className="cursor-pointer text-sm font-medium text-stone-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:underline dark:text-stone-300"
-                                    onClick={openCreate}
+                                    onClick={() => kindFilter === "subject" ? setSubjectDialog("new") : openCreate()}
                                 >
-                                    {t("assets.add")}
+                                    {kindFilter === "subject" ? "新增主体" : t("assets.add")}
                                 </button>
                             </div>
                         </div>
@@ -270,18 +276,23 @@ export default function AssetsPage() {
 
                 <div className="mx-auto flex max-w-7xl flex-col gap-5">
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {visibleAssets.map((asset) => (
-                            <AssetCard key={asset.id} asset={asset} onOpen={() => setPreviewAsset(asset)} onEdit={() => openEdit(asset)} onCopy={copyAssetText} onDownload={downloadImage} onDelete={() => setDeletingAsset(asset)} />
-                        ))}
+                        {visibleEntries.map((entry) => entry.kind === "subject" ? (
+                            <Card key={`subject:${entry.subject.id}`} cover={<button type="button" aria-label={`查看主体 ${entry.subject.name}`} className="block w-full" onClick={() => setPreviewSubject(entry.subject)}><img src={entry.subject.images[0]?.url} alt={entry.subject.name} className="h-56 w-full object-cover" /></button>}>
+                                <div className="mb-3 flex items-center justify-between gap-2"><span className="truncate font-medium">{entry.subject.name}</span><Tag>主体</Tag></div>
+                                <p className="line-clamp-2 min-h-10 text-sm text-muted-foreground">{entry.subject.description || "未填写描述"}</p>
+                                <p className="text-xs text-muted-foreground">{entry.subject.images.length} 张参考图片{entry.subject.voice ? " · 已添加音色" : ""}</p>
+                                <div className="mt-4 flex flex-wrap gap-2"><Button size="small" onClick={() => setPreviewSubject(entry.subject)}>查看</Button><Button size="small" icon={<PencilLine size={14} />} onClick={() => setSubjectDialog(entry.subject)}>编辑</Button><Button size="small" danger icon={<Trash2 size={14} />} onClick={() => modal.confirm({ title: "删除主体？", content: "工作台草稿中对这个主体的引用将失效。", okText: "删除", cancelText: "取消", okButtonProps: { danger: true }, onOk: async () => { try { await removeSubject(entry.subject.id); } catch { void message.error("删除失败，请重试"); throw new Error("删除失败"); } } })}>删除</Button></div>
+                            </Card>
+                        ) : <AssetCard key={entry.asset.id} asset={entry.asset} onOpen={() => setPreviewAsset(entry.asset)} onEdit={() => openEdit(entry.asset)} onCopy={copyAssetText} onDownload={downloadImage} onDelete={() => setDeletingAsset(entry.asset)} />)}
                     </div>
 
-                    {!visibleAssets.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("assets.empty")} className="py-20" /> : null}
+                    {!visibleEntries.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("assets.empty")} className="py-20" /> : null}
 
                     <div className="flex justify-center">
                         <Pagination
                             current={page}
                             pageSize={pageSize}
-                            total={filteredAssets.length}
+                            total={entries.length}
                             showSizeChanger
                             pageSizeOptions={[10, 20, 50, 100]}
                             onChange={(nextPage, nextPageSize) => {
@@ -292,6 +303,13 @@ export default function AssetsPage() {
                     </div>
                 </div>
             </main>
+
+            {subjectDialog && <SubjectDialog subject={subjectDialog === "new" ? undefined : subjectDialog} onClose={() => setSubjectDialog(null)} />}
+            <Modal open={Boolean(previewSubject)} title={previewSubject?.name} footer={null} onCancel={() => setPreviewSubject(null)}>
+                <p className="whitespace-pre-wrap text-muted-foreground">{previewSubject?.description || "未填写描述"}</p>
+                <Image.PreviewGroup><div className="grid grid-cols-2 gap-3">{previewSubject?.images.map((image) => <Image key={image.id} src={image.url} alt={image.name} />)}</div></Image.PreviewGroup>
+                {previewSubject?.voice && <audio controls src={previewSubject.voice.url} className="mt-4 w-full" />}
+            </Modal>
 
             <Modal title={editingAsset ? t("assets.edit") : t("assets.add")} open={isAssetOpen} width={980} onCancel={() => setIsAssetOpen(false)} onOk={() => void saveAsset()} okText={t("common.save")} cancelText={t("common.cancel")} destroyOnHidden>
                 <div className="grid gap-6 pt-1 lg:grid-cols-[minmax(0,1fr)_320px]">

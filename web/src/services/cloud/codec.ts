@@ -1,7 +1,5 @@
 import Ajv from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import canonicalize from "canonicalize";
-import { createSHA256 } from "hash-wasm";
 import { fileTypeFromBlob } from "file-type";
 import pointer from "jsonpointer";
 import schema from "./manifest.schema.json";
@@ -9,6 +7,8 @@ import { fetchCloudSource } from "@/services/api/cloud";
 import { localDomains, readLocalBlob, readLocalData } from "./local-data";
 import { MEDIA_MARKER } from "./media-urls";
 import type { CloudStatus, Domain, Json, Manifest, Progress } from "./types";
+import { hashBlob } from "./hash";
+export { hashBlob, hashManifest } from "./hash";
 
 const ajv = new Ajv({ allErrors: false, strict: false });
 addFormats(ajv);
@@ -40,15 +40,6 @@ export function mediaEntries(data: Json): MediaEntry[] {
     walk(data, ""); return entries;
 }
 
-export async function hashBlob(blob: Blob, signal?: AbortSignal) {
-    const hash = await createSHA256(); const reader = blob.stream().getReader();
-    try {
-        for (;;) { signal?.throwIfAborted(); const chunk = await reader.read(); if (chunk.done) break; hash.update(chunk.value); }
-        return hash.digest("hex");
-    } finally { await reader.cancel(); reader.releaseLock(); }
-}
-export function hashManifest(manifest: Manifest, signal?: AbortSignal) { return hashBlob(new Blob([canonicalize(manifest)!]), signal); }
-
 export function assertManifest(value: unknown): asserts value is Manifest {
     if (!validate(value)) throw new Error(`快照数据格式不符合当前版本：${ajv.errorsText(validate.errors, { separator: "；" })}`);
     const manifest = value as Manifest;
@@ -56,7 +47,7 @@ export function assertManifest(value: unknown): asserts value is Manifest {
     const files = new Map(manifest.files.map(file => [file.fileKey, file])); const used = new Set<string>();
     if (files.size !== manifest.files.length) throw new Error("快照文件标识重复");
     for (const domain of manifest.domains) {
-        const entries = new Map(mediaEntries(domain.data).map(entry => [entry.pointer, entry])); const pointers = new Set<string>();
+        const entries = new Map((domain.name === "settings" ? [] : mediaEntries(domain.data)).map(entry => [entry.pointer, entry])); const pointers = new Set<string>();
         for (const ref of domain.mediaRefs) {
             if (pointers.has(ref.pointer) || !entries.has(ref.pointer) || pointer.get(domain.data, ref.pointer) !== null || !files.has(ref.fileKey)) throw new Error("快照媒体引用无效");
             pointers.add(ref.pointer); used.add(ref.fileKey);
@@ -73,10 +64,10 @@ export async function captureLocal(status: CloudStatus, progress: Progress, sign
     const blobs = new Map<string, Blob>();
     const bySource = new Map<string, string>();
     const aliases = new Map<string, string>();
-    for (const domain of domains) for (const entry of mediaEntries(domain.data)) if (entry.storageKey && typeof entry.value === "string" && entry.value) aliases.set(entry.value, entry.storageKey);
+    for (const domain of domains.filter(domain => domain.name !== "settings")) for (const entry of mediaEntries(domain.data)) if (entry.storageKey && typeof entry.value === "string" && entry.value) aliases.set(entry.value, entry.storageKey);
     let completed = 0;
     for (const domain of domains) {
-        const entries = mediaEntries(domain.data);
+        const entries = domain.name === "settings" ? [] : mediaEntries(domain.data);
         for (const entry of entries) {
             signal?.throwIfAborted();
             if (entry.value === "") continue;
@@ -113,5 +104,5 @@ export async function captureLocal(status: CloudStatus, progress: Progress, sign
 }
 
 export function domainCounts(domains: Domain[]) {
-    return domains.map(domain => ({ name: domain.name, records: Object.values(domain.data).reduce<number>((count, value) => count + (Array.isArray(value) ? value.length : 0), 0) }));
+    return domains.map(domain => ({ name: domain.name, records: domain.name === "ai-workbench" ? (domain.data.draft ? 1 : 0) : Object.values(domain.data).reduce<number>((count, value) => count + (Array.isArray(value) ? value.length : 0), 0) }));
 }

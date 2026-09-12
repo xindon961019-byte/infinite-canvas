@@ -48,5 +48,7 @@ export async function leaveForCloud(path: string) {
     await flushCanvasPersistence();
     await localForageStorage.setItem("infinite-canvas:asset_store", JSON.stringify({ state: { assets: useAssetStore.getState().assets }, version: 0 }));
     await flushLocalWrites();
+    const [{ flushSubjectWrites }, { flushWorkspaceWrites }] = await Promise.all([import("@/stores/use-subject-store"), import("@/pages/ai/use-workspace")]);
+    await Promise.all([flushSubjectWrites(), flushWorkspaceWrites()]);
     window.location.assign(path);
 }

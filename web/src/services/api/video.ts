@@ -8,6 +8,8 @@ import { getMediaBlob, resolveMediaUrl, uploadMediaFile, type UploadedFile } fro
 import { imageToDataUrl } from "@/services/image-storage";
 import { boolConfig, buildApiUrl, modelOptionName, resolveModelRequestConfig, resolveModelScript, withLocalProxy, type AiConfig } from "@/stores/use-config-store";
 import { runModelPlugin } from "./model-plugin";
+import type { CreationRequest } from "@/lib/ai/creation-request";
+import { modelMediaURL } from "./model-media";
 import type { ReferenceImage } from "@/types/image";
 import type { ReferenceAudio, ReferenceVideo } from "@/types/media";
 
@@ -15,7 +17,7 @@ type VideoResponse = { id: string; status?: string; error?: { message?: string }
 type ApiVideoResponse = VideoResponse | { code?: number | string; data?: VideoResponse | null; msg?: string; message?: string; error?: { message?: string } };
 type ApiEnvelope<T> = T | { code?: number | string; data?: T | null; msg?: string; message?: string; error?: { message?: string } };
 type RequestOptions = { signal?: AbortSignal };
-type VideoMediaOptions = RequestOptions & { videos?: ReferenceVideo[]; audios?: ReferenceAudio[] };
+type VideoMediaOptions = RequestOptions & { videos?: ReferenceVideo[]; audios?: ReferenceAudio[]; creation?: CreationRequest };
 const apiText = (key: string, options?: Record<string, unknown>) => i18n.t(`apiErrors.${key}`, options);
 
 export type VideoGenerationResult = { blob?: Blob; url?: string; mimeType?: string };
@@ -74,6 +76,7 @@ export async function createVideoGenerationTask(config: AiConfig, prompt: string
     const requestConfig = resolveModelRequestConfig(config, selectedModel);
     const script = resolveModelScript(config, selectedModel);
     if (script) return createPluginVideoTask(requestConfig, selectedModel, script, prompt, references, options);
+    if (options?.creation && options.audios?.length) throw new Error("带音频主体需要配置模型渠道脚本，请使用 audioUrls 中的长期地址作为参考音频字段");
     assertVideoConfig(requestConfig, requestConfig.model);
     if (requestConfig.apiFormat === "gemini") return createGeminiVideoTask(requestConfig, selectedModel, prompt, references, options);
     return createOpenAIVideoTask(requestConfig, selectedModel, prompt, references, options);
@@ -96,6 +99,16 @@ async function createPluginVideoTask(config: AiConfig, model: string, script: st
     const refs = await Promise.all(references.map((image) => imageToDataUrl(image)));
     const videos = await Promise.all((options?.videos || []).map((video) => referenceMediaToFile(video, "ref.mp4", "invalidReferenceVideo", options)));
     const audios = await Promise.all((options?.audios || []).map((audio) => referenceMediaToFile(audio, "ref.mp3", "invalidReferenceAudio", options)));
+    const audioUrls = options?.creation ? await Promise.all(audios.map(async (audio) => (await modelMediaURL(audio, "audio", options.signal, true)).url)) : [];
+    const creation = options?.creation ? structuredClone(options.creation) : undefined;
+    if (creation) {
+        let index = 0;
+        for (const media of creation.media) if (media.kind === "audio") media.url = audioUrls[index++];
+        for (const subject of creation.subjects) if (subject.voice) {
+            const media = creation.media.find((item) => item.kind === "audio" && item.owners.some((owner) => owner.kind === "subject" && owner.id === subject.id));
+            if (media) subject.voice.url = media.url;
+        }
+    }
     const result = videoPluginResult(
         await runModelPlugin({
             capability: "video",
@@ -105,6 +118,7 @@ async function createPluginVideoTask(config: AiConfig, model: string, script: st
             images: refs,
             videos,
             audios,
+            audioUrls,
             params: {
                 seconds: normalizeVideoSeconds(config.videoSeconds),
                 size: normalizeVideoSize(config.size, config.vquality),
@@ -114,6 +128,7 @@ async function createPluginVideoTask(config: AiConfig, model: string, script: st
                 watermark: boolConfig(config.videoWatermark, false),
                 mode: resolveVideoMode(config.videoMode, refs.length),
             },
+            creation,
             signal: options?.signal,
         }),
     );
@@ -302,7 +317,7 @@ async function referenceMediaToFile(item: { name: string; type?: string; url?: s
         }
     }
     if (!blob.size) throw new Error(apiText(errorKey));
-    return new File([blob], item.name || fallbackName, { type: item.type || blob.type || "application/octet-stream" });
+    return new File([blob], item.name || fallbackName, { type: blob.type || (item.type?.includes("*") ? "" : item.type) || "application/octet-stream" });
 }
 
 function normalizeVideoSeconds(value: string) {

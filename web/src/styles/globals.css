@@ -607,3 +607,18 @@
     border-radius: 0.6rem;
     font-size: 0.75rem;
 }
+.subject-dialog .ant-modal-content {
+  padding: 0 28px 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 12px;
+  background: #202020;
+}
+.subject-dialog .ant-modal-header { padding: 24px 0 8px; background: transparent; }
+.subject-dialog .ant-modal-title { color: rgba(255,255,255,.92); }
+.subject-dialog .ant-modal-close { top: 20px; right: 20px; color: rgba(255,255,255,.7); }
+.subject-dialog .ant-modal-body { color: rgba(255,255,255,.88); }
+.subject-dialog .ant-modal-footer { margin-top: 0; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,.06); }
+.subject-dialog .ant-input, .subject-dialog textarea { border-color: rgba(255,255,255,.08); background: #292929; color: rgba(255,255,255,.9); }
+.subject-dialog .ant-input::placeholder, .subject-dialog textarea::placeholder { color: rgba(255,255,255,.28); }
+.subject-dialog .ant-btn-primary { min-width: 96px; height: 42px; border-radius: 8px; }

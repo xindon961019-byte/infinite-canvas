@@ -39,6 +39,7 @@ export default {
     generation: { pending: ["正在创建图片", "马上就好了", "再等等", "正在整理细节"] },
     imageReferences: { label: "图片{{index}}", separator: "、", promptPrefix: "参考图片编号：{{labels}}。请按这些编号理解提示词中的图片引用。\n\n{{prompt}}" },
     modelPlugin: {
+        referenceAudioGuide: "参考音频与公网地址：audios 是 File[]，不是 URL；仅当渠道接受 multipart 文件上传时才能直接 form.append。若接口要求可公网读取的音频地址，优先使用 audioUrls[index]：AI 工作台发送前自动上传或复用音频，返回与 audios 同序的长期地址。普通画布或其他未准备地址的调用中，audioUrls 可能为空；此时用 (await cloud.mediaUrl(audios[index], { kind: 'audio' })).url 获取临时公网地址，需要登录媒体服务器，失败时停止提交，不要退回 blob:、本地路径或 File 对象。临时地址不要写回主体长期保存。按实际渠道文档把地址放入参考音频字段，不能把 audioUrls 数组直接当成通用请求体，也不能把参考音频与 generateAudio 输出声音开关混淆。",
         pollTimeout: "插件轮询超时，请检查调用脚本或稍后重试", executionFailed: "模型调用脚本执行失败：{{message}}", noImages: "模型调用脚本没有返回图片",
         variables: { prompt: "用户输入的提示词（已拼接系统提示词）", images: "参考图，dataURL 数组（改图 / 图生视频时有值）", videos: "参考视频 File 数组，可直接 form.append；画布或工作台接入的参考视频，无则为空数组", audios: "参考音频 File 数组，可直接 form.append；画布或工作台接入的参考音频，无则为空数组", messages: "对话消息数组，含系统消息", params: "生成参数：生图 {size,quality,count,background}、视频 {mode,seconds,size,resolution,ratio,generateAudio,watermark}（mode 为 frames 首尾帧或 reference 全能参考；超过 2 张图时为 reference）、音频 {voice,format,speed,instructions}", model: "模型名称（不含渠道前缀）", baseUrl: "渠道接口地址（原样，未拼 /v1）", apiKey: "渠道 API Key，请求头里自己带上", systemPrompt: "系统提示词原文", reasoningEffort: "文本推理强度；auto 表示由脚本决定是否传递", http: "便捷请求：http.post(path, body, {headers,params,responseType})、http.get(path, opts)、http.url(path)；默认带 Authorization: Bearer apiKey，可用 headers 覆盖；path 相对时按 baseUrl 拼 /v1", request: "原始请求 request({ method, url, headers, params, data, responseType })，不加任何默认头，鉴权头自己写；url 相对时按 baseUrl 拼接（不加 /v1）", poll: "轮询 poll(request, extract, {intervalMs,timeoutMs})，extract 返回真值即结束", sleep: "sleep(ms) 延时", signal: "取消信号，可透传给 http/request", onDelta: "onDelta(text) 推送流式文本（文本模型）" },
         returns: { image: "文生图（images 为空）和图生图（images 有参考图）接口不同，脚本需自行区分；返回图片 URL 或 dataURL 字符串，也可返回它们的数组，或 [{ dataUrl }] / [{ url }] / [{ b64_json }]", video: "脚本内部完成轮询，返回 { url } 或 { blob } 或视频 URL 字符串", audio: "返回 Blob，或 base64 / dataURL 字符串，或 { b64_json } / { data } / { url }", text: "用 onDelta(text) 推送流式，最终 return 完整文本字符串" },
@@ -324,6 +325,7 @@ export default {
         },
     },
     navigation: {
+        ai: "AI 工作台",
         canvas: "我的画布",
         image: "生图工作台",
         video: "视频创作台",

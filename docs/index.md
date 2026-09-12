@@ -15,6 +15,8 @@
 
 ## Development and Data
 
+- [多设备增量同步](./多设备增量同步.md)
+
 - [Local Development](/docs/development/local-development)
 - [Canvas Data Structure](/docs/development/canvas-data-structure)
 - [How the Local Codex Connection Works](/docs/development/local-codex-canvas)
@@ -31,6 +33,7 @@
 
 ## Project Progress
 
+- [AI 创作台需求文档](./AI创作台需求文档.md) — 一期需求，尚未实现。
 - [Changelog](/docs/progress/changelog)
 - [Pending Tests](/docs/progress/pending-test)
 - [TODO](/docs/progress/todo)

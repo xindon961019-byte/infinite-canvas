@@ -291,11 +291,154 @@
               "mediaRefs"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "subjects"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/subject"
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "ai-workbench"
+              },
+              "domainVersion": {
+                "const": 1
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "draft": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/aiWorkspace"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "draft"
+                ],
+                "additionalProperties": false
+              },
+              "mediaRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "pattern": "^/"
+                    },
+                    "fileKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "representation": {
+                      "enum": [
+                        "blob-url",
+                        "data-url",
+                        "storage-key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "pointer",
+                    "fileKey",
+                    "representation"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "domainVersion",
+              "data",
+              "mediaRefs"
+            ],
+            "additionalProperties": false
+          }
+          ,{
+            "type": "object",
+            "properties": {
+              "name": { "const": "settings" },
+              "domainVersion": { "const": 1 },
+              "data": {
+                "type": "object",
+                "properties": { "items": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string", "minLength": 1 }, "store": { "enum": ["local", "config", "webdav", "channel", "model", "app_state", "prompt_cache"] }, "key": { "type": "string" }, "value": { "type": "string" } }, "required": ["id", "store", "key", "value"], "additionalProperties": false } } },
+                "required": ["items"],
+                "additionalProperties": false
+              },
+              "mediaRefs": { "type": "array", "items": { "type": "object", "properties": { "pointer": { "type": "string", "pattern": "^/" }, "fileKey": { "type": "string", "minLength": 1 }, "representation": { "enum": ["blob-url", "data-url", "storage-key"] } }, "required": ["pointer", "fileKey", "representation"], "additionalProperties": false } }
+            },
+            "required": ["name", "domainVersion", "data", "mediaRefs"],
+            "additionalProperties": false
           }
         ]
       },
-      "minItems": 1,
-      "maxItems": 4
+      "minItems": 1
     },
     "files": {
       "type": "array",
@@ -1587,6 +1730,178 @@
         "resolution",
         "seconds",
         "status"
+      ],
+      "additionalProperties": false
+    },
+    "subjectMedia": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "url",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "subject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subjectMedia"
+          }
+        },
+        "voice": {
+          "$ref": "#/$defs/subjectMedia"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "images"
+      ],
+      "additionalProperties": false
+    },
+    "aiWorkspace": {
+      "type": "object",
+      "properties": {
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subjectMedia"
+          }
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kind": {
+                    "enum": [
+                      "subject",
+                      "asset"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "id",
+                  "kind"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "auto": {
+          "type": "boolean"
+        },
+        "kind": {
+          "enum": [
+            "image",
+            "video"
+          ]
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "ratio": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "quality": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ratio",
+            "model",
+            "quality"
+          ],
+          "additionalProperties": false
+        },
+        "video": {
+          "type": "object",
+          "properties": {
+            "ratio": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "quality": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ratio",
+            "model",
+            "quality"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "assets",
+        "parts",
+        "auto",
+        "kind",
+        "image",
+        "video"
       ],
       "additionalProperties": false
     }

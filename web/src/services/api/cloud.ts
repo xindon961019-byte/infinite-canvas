@@ -33,6 +33,9 @@ async function request<T>(path: string, options: { method?: string; json?: unkno
 }
 
 export const cloudAPI = {
+    persistentAudio: (id: string, signal?: AbortSignal) => request<{ mediaId: string; url: string }>(`/media/${encodeURIComponent(id)}/persistent-audio`, { method: "POST", signal }),
+    changes: (after = "0", signal?: AbortSignal) => request<{ items: SyncEntry[] }>(`/sync?after=${encodeURIComponent(after)}`, { signal }),
+    publish: (key: string, backupId: string, baseRevision: string, signal?: AbortSignal) => request<SyncEntry>("/sync", { method: "POST", json: { key, backupId, baseRevision }, signal }),
     login: (baseUrl: string, username: string, password: string, signal?: AbortSignal) => request<CloudSession>("/auth/login", { method: "POST", json: { username, password }, baseUrl, anonymous: true, signal }),
     me: (signal?: AbortSignal) => request<{ username: string; role: CloudSession["user"]["role"]; workspaceId: string; expiresAt: string }>("/auth/me", { signal }),
     logout: () => request<void>("/auth/logout", { method: "POST" }),
@@ -41,12 +44,16 @@ export const cloudAPI = {
     backup: (id: string, signal?: AbortSignal) => request<Backup>(`/backups/${encodeURIComponent(id)}`, { signal }),
     create: (manifest: Manifest, key: string, signal?: AbortSignal) => request<Backup>("/backups", { method: "POST", json: { manifest }, headers: { "Idempotency-Key": key }, signal }),
     commit: (id: string, signal?: AbortSignal) => request<{ backupId: string; state: "committed" }>(`/backups/${encodeURIComponent(id)}/commit`, { method: "POST", signal }),
-    upload: (blob: Blob, sha: string, signal?: AbortSignal) => {
-        const form = new FormData(); form.set("sha256", sha); form.set("purpose", "backup"); form.set("file", blob, "media");
+    upload: (blob: Blob, sha: string, signal?: AbortSignal, purpose = "backup") => {
+        const form = new FormData(); form.set("sha256", sha); form.set("purpose", purpose); form.set("file", blob, "media");
         return request<Media>("/media", { method: "POST", body: form, signal });
     },
+    resolve: (files: { sha256: string; bytes: number }[], signal?: AbortSignal) => request<{ found: Media[]; missing: string[] }>("/media/resolve", { method: "POST", json: { files }, signal }),
+    grant: (id: string, signal?: AbortSignal) => request<{ grantId: string; mediaId: string; url: string; expiresAt: string }>(`/media/${encodeURIComponent(id)}/access-grants`, { method: "POST", json: { purpose: "model-reference" }, signal }),
     media: (id: string, signal?: AbortSignal) => request<Blob>(`/media/${encodeURIComponent(id)}/content`, { binary: true, signal }),
 };
+
+export type SyncEntry = { key: string; backupId: string; revision: string };
 
 // External media never receives the Cloud bearer token or browser credentials.
 export async function fetchCloudSource(url: string, signal?: AbortSignal) {

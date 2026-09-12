@@ -26,7 +26,7 @@ export function ConfigServerSync() {
     return (
         <section className="py-3">
             <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-                <div><h3 className="flex items-center gap-2 text-base font-medium"><Cloud className="size-5" />服务器同步</h3><p className="mt-2 text-sm text-muted-foreground">保存画布、我的素材、生成记录及关联媒体。下载前可选择备份与恢复范围。</p></div>
+                <div><h3 className="flex items-center gap-2 text-base font-medium"><Cloud className="size-5" />服务器同步</h3><p className="mt-2 text-sm text-muted-foreground">同一账号的画布、素材、主体、密钥、渠道脚本与偏好。</p></div>
                 {session ? <Button type="text" size="small" icon={<LogOut className="size-3.5" />} onClick={() => void logout()} disabled={leaving}>退出登录</Button> : <Button type="text" icon={<LogIn className="size-4" />} onClick={() => void go()} disabled={leaving}>登录服务器</Button>}
             </div>
             <div className="mb-5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground"><span>{session ? `已登录 · ${session.user.username} · ${session.user.role === "super_admin" ? "超管" : "用户"}` : "尚未登录服务器"}</span><span className="break-all">{baseUrl}</span></div>
@@ -38,7 +38,7 @@ export function ConfigServerSync() {
                     <ArrowDownToLine className="mr-4 size-6 shrink-0" strokeWidth={1.5} /><span className="text-left"><span className="block text-sm font-medium">数据下载</span><span className="mt-1.5 block text-xs text-muted-foreground">把服务器数据下载至本地</span></span>
                 </Button>
             </div>
-            <p className="mt-4 text-xs leading-6 text-muted-foreground">同步将在独立页面完成，请先结束正在进行的生成任务。下载会替换所选范围的本地数据，操作前会再次确认。</p>
+            <p className="mt-4 text-xs leading-6 text-muted-foreground">上传和拉取均合并变更，保留两端独有数据。密钥与脚本会随配置保存到当前账号的服务器空间。</p>
             {leaving ? <p role="status" className="mt-2 text-xs text-muted-foreground">正在保存当前页面并打开同步…</p> : null}
         </section>
     );
